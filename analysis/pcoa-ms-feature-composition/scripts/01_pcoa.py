@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import squareform, pdist
+from scipy.stats import spearmanr
 
 ANALYSIS_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = ANALYSIS_ROOT.parents[1]
@@ -47,6 +48,11 @@ TREATMENT_COLORS = {
     "STP1717.1 pilot": "#7570B3",
     "(QC blank)": "#BBBBBB",
 }
+TREATED_MARKERS = {
+    "STP1710.7 pilot": "o",
+    "STP1717.1 pilot": "^",
+}
+AGE_COLORMAP = "viridis"
 
 
 def load_metadata() -> pd.DataFrame:
@@ -63,6 +69,20 @@ def load_metadata() -> pd.DataFrame:
     # blank to an explicit "(QC blank)" label is presentation-only for the legend, not an impute
     # of a real biological value.
     meta["treatment_group"] = meta["treatment_group"].fillna("(QC blank)").replace("", "(QC blank)")
+
+    bio = meta["sample_type"] == "sample"
+    for col in ("collection_date", "metamorphosis_date", "basidiobolus_feeding_date"):
+        parsed = pd.to_datetime(meta[col], errors="coerce")
+        n_missing_bio = int(parsed[bio].isna().sum())
+        if n_missing_bio != 0:
+            raise ValueError(f"{n_missing_bio} biological-sample rows have unparseable/missing {col}")
+        meta[col] = parsed
+
+    # ANALYSIS_OK[imputation]: days_post_metamorphosis/days_post_feeding are left as NaN (not
+    # imputed to 0 or any other value) for the 7 QC blank rows, which have no animal timeline;
+    # completeness for all 50 biological rows is asserted above.
+    meta["days_post_metamorphosis"] = (meta["collection_date"] - meta["metamorphosis_date"]).dt.days
+    meta["days_post_feeding"] = (meta["collection_date"] - meta["basidiobolus_feeding_date"]).dt.days
     return meta
 
 
@@ -229,6 +249,59 @@ def plot_pcoa_single_panel(
     plt.close(fig)
 
 
+def plot_pcoa_by_age(
+    scores: np.ndarray,
+    pct_var: np.ndarray,
+    meta: pd.DataFrame,
+    color_col: str,
+    color_label: str,
+    marker_col: str,
+    marker_map: dict[str, str],
+    title: str,
+    out_path: Path,
+) -> None:
+    fig, ax = plt.subplots(figsize=(7.5, 6))
+    vmin, vmax = meta[color_col].min(), meta[color_col].max()
+    scatter = None
+    for m, marker in marker_map.items():
+        mask = (meta[marker_col] == m).to_numpy()
+        if not mask.any():
+            continue
+        scatter = ax.scatter(
+            scores[mask, 0],
+            scores[mask, 1],
+            c=meta.loc[mask, color_col],
+            cmap=AGE_COLORMAP,
+            vmin=vmin,
+            vmax=vmax,
+            marker=marker,
+            s=70,
+            edgecolor="k",
+            linewidth=0.4,
+            label=m,
+        )
+    ax.set_xlabel(f"PCo1 ({pct_var[0]:.1f}%)")
+    ax.set_ylabel(f"PCo2 ({pct_var[1]:.1f}%)")
+    ax.set_title(title, fontsize=11, wrap=True)
+    ax.axhline(0, color="grey", lw=0.5)
+    ax.axvline(0, color="grey", lw=0.5)
+
+    marker_handles = [
+        plt.Line2D([0], [0], marker=marker, color="w", markerfacecolor="grey", markeredgecolor="k", markersize=9, label=m)
+        for m, marker in marker_map.items()
+    ]
+    ax.legend(handles=marker_handles, title=marker_col, fontsize=8, loc="best")
+
+    if scatter is not None:
+        cbar = fig.colorbar(scatter, ax=ax)
+        cbar.set_label(color_label)
+
+    fig.tight_layout()
+    fig.savefig(out_path)
+    fig.savefig(out_path.with_suffix(".png"), dpi=200)
+    plt.close(fig)
+
+
 def main() -> None:
     rng = np.random.default_rng(RNG_SEED)
 
@@ -310,6 +383,64 @@ def main() -> None:
     coords_bio.to_csv(OUT_DIR / "pcoa_scores_no_blanks.csv")
 
     print(f"[no-blanks] PC1 {pct_var_bio[0]:.1f}%  PC2 {pct_var_bio[1]:.1f}% (n={int(bio_mask.sum())})")
+
+    # Treated-only version: QC blanks AND control-treatment samples dropped, since
+    # days_post_feeding measures time since Basidiobolus exposure and is only meaningful for
+    # animals that were actually fed the fungus (the two pilot cohorts), not for controls.
+    treated_mask_bio = meta_bio["treatment_group"].isin(TREATED_MARKERS.keys()).to_numpy()
+    n_dropped_controls = int((~treated_mask_bio).sum())
+    register_value(
+        "pcoa_treated_only_n_controls_dropped",
+        n_dropped_controls,
+        provenance="scripts/01_pcoa.py: control treatment_group samples excluded from the age-gradient ordination",
+    )
+    bc_treated = bc_bio[np.ix_(np.where(treated_mask_bio)[0], np.where(treated_mask_bio)[0])]
+    meta_treated = meta_bio.loc[treated_mask_bio].reset_index(drop=True)
+    if meta_treated["days_post_feeding"].isna().any():
+        raise ValueError("days_post_feeding has missing values among treated-only samples")
+
+    scores_treated, pct_var_treated = classical_pcoa(bc_treated)
+    if scores_treated.shape[0] != meta_treated.shape[0]:
+        raise ValueError(f"treated-only PCoA sample count mismatch: {scores_treated.shape[0]} vs {meta_treated.shape[0]}")
+
+    register_value("pcoa_treated_only_n_samples", int(meta_treated.shape[0]), provenance="scripts/01_pcoa.py")
+    register_value("pcoa_treated_only_pc1_pct_variance", round(float(pct_var_treated[0]), 2), provenance="scripts/01_pcoa.py")
+    register_value("pcoa_treated_only_pc2_pct_variance", round(float(pct_var_treated[1]), 2), provenance="scripts/01_pcoa.py")
+
+    rho_pc1, p_pc1 = spearmanr(meta_treated["days_post_feeding"], scores_treated[:, 0])
+    rho_pc2, p_pc2 = spearmanr(meta_treated["days_post_feeding"], scores_treated[:, 1])
+    register_value("spearman_rho_days_post_feeding_pc1", round(float(rho_pc1), 3), provenance="scripts/01_pcoa.py")
+    register_value("spearman_pvalue_days_post_feeding_pc1", round(float(p_pc1), 4), provenance="scripts/01_pcoa.py")
+    register_value("spearman_rho_days_post_feeding_pc2", round(float(rho_pc2), 3), provenance="scripts/01_pcoa.py")
+    register_value("spearman_pvalue_days_post_feeding_pc2", round(float(p_pc2), 4), provenance="scripts/01_pcoa.py")
+
+    plot_pcoa_by_age(
+        scores_treated,
+        pct_var_treated,
+        meta_treated,
+        color_col="days_post_feeding",
+        color_label="Days post Basidiobolus feeding",
+        marker_col="treatment_group",
+        marker_map=TREATED_MARKERS,
+        title="PCoA (Bray-Curtis), QC blanks + controls removed\ncolor = days post feeding, shape = treatment_group",
+        out_path=OUT_DIR / "pcoa_bray_curtis_treated_only_by_age.pdf",
+    )
+
+    coords_treated = pd.DataFrame(
+        scores_treated[:, :5], columns=[f"PCo{i+1}" for i in range(5)], index=meta_treated["filename"]
+    )
+    coords_treated = coords_treated.join(
+        meta_treated.set_index("filename")[
+            ["sample_id", "subject_id", "treatment_group", "days_post_feeding", "days_post_metamorphosis"]
+        ]
+    )
+    coords_treated.to_csv(OUT_DIR / "pcoa_scores_treated_only.csv")
+
+    print(
+        f"[treated-only, n={meta_treated.shape[0]}] PC1 {pct_var_treated[0]:.1f}%  PC2 {pct_var_treated[1]:.1f}%  "
+        f"Spearman(days_post_feeding, PC1) rho={rho_pc1:.3f} p={p_pc1:.4f}  "
+        f"Spearman(days_post_feeding, PC2) rho={rho_pc2:.3f} p={p_pc2:.4f}"
+    )
     print(f"Outputs written to {OUT_DIR}")
 
 

@@ -55,3 +55,21 @@ Append-only log of non-obvious decisions and their rationale.
 
 **Tags**: mycelium, analysis, metabolomics, pcoa, statistics
 
+---
+
+### [2026-08-20] Derived sample age from metadata timeline dates; dropped controls (not blanks) for the age-gradient plot
+
+**Context**: User asked whether a specific sample "age" could be inferred from `gnps2-ad67978e-bagel`'s metadata and, if so, to visualize the PCoA colored/shaped by it. `merged_metadata.tsv` has no direct age column, but does have `subject_id` (grouping repeat samples per animal; 19 subjects, mostly 3 timepoints each), `collection_date`, `metamorphosis_date`, and `basidiobolus_feeding_date`.
+
+**Decision**: Derived two candidate ages — `days_post_metamorphosis` (developmental age) and `days_post_feeding` (experimental time since Basidiobolus exposure) — and used `days_post_feeding` for the requested color-gradient plot. Built that plot on a *third* ordination (QC blanks AND `control`-treatment samples dropped, n=33), not the existing no-blanks ordination, because `days_post_feeding` is only a meaningful clock for animals actually exposed to the fungus; `control` animals have a `basidiobolus_feeding_date` value in the metadata (same tank/cohort schedule) but it doesn't correspond to a real exposure event for them, so plotting them on that color scale would be misleading.
+
+**Alternatives considered**:
+- Color the existing 50-sample no-blanks ordination by `days_post_feeding` and just gray out controls — rejected; the PCoA centering itself would still be influenced by control samples whose "age" value is not biologically meaningful, muddying the ordination as well as the color scale.
+- Use `days_post_metamorphosis` instead of `days_post_feeding` — not rejected, but not tried in this pass; noted as an open question since the two are correlated by construction and it's unclear which (or both) drives the pattern.
+
+**Rationale**: Matches the same "recompute the ordination on the exact sample set you're interpreting" principle already used for the no-blanks version, and avoids showing a derived covariate for samples where it isn't defined.
+
+**Consequences**: Found a significant correlation between `days_post_feeding` and both PC1 (Spearman rho=0.54, p=0.0012) and PC2 (rho=-0.45, p=0.0093) among the 33 treated samples — a stronger and cleaner signal than the treatment-group PERMANOVA found. Flagged as an open question that the earlier non-significant treatment-group PERMANOVA should be revisited with `days_post_feeding`/`subject_id` as a covariate, since a treatment effect could be masked by this larger time trend. Also flagged that the 33 points are repeated-measures (not independent), so the Spearman test is a first-pass signal, not a rigorous test.
+
+**Tags**: mycelium, analysis, metabolomics, pcoa, age, derived-variable
+
