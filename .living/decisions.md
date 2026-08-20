@@ -91,3 +91,21 @@ Append-only log of non-obvious decisions and their rationale.
 
 **Tags**: mycelium, analysis, metabolomics, pcoa, age, confound
 
+---
+
+### [2026-08-20] Added a direct age-variable collinearity check rather than assuming it
+
+**Context**: The user presumed `days_post_feeding` and `days_post_metamorphosis` (the two derived age variables from the previous PCoA work) would be correlated with each other, and asked to verify this in the labeled data rather than take it on faith.
+
+**Decision**: Added `scripts/02_age_variable_correlation.py`, a small standalone check that plots the two variables against each other (axes labeled, colored by `treatment_group`, Pearson/Spearman in the title) and registers the correlation stats. Result: Pearson r=0.998 (p=1.6e-60) — the two are practically collinear, with one animal (`UHM102`) as a mild, explainable exception (longer-than-usual metamorphosis-to-feeding gap).
+
+**Alternatives considered**:
+- Fold this check into `01_pcoa.py` — rejected; it's a metadata-only diagnostic independent of the feature/quant table and Bray-Curtis machinery, so a separate numbered script keeps `01_pcoa.py` focused and this check independently rerunnable.
+- Skip the plot and just report the correlation coefficient in prose — rejected; the user specifically asked to "see" it in a labeled plot, and the scatter also surfaces the UHM102 outlier that a bare correlation number would hide.
+
+**Rationale**: Confirming rather than assuming this collinearity has direct interpretive consequences (see below), so it's worth a checked-in analysis artifact rather than a one-off answer in conversation.
+
+**Consequences**: Since `days_post_feeding` and `days_post_metamorphosis` are collinear in this dataset, the PC1 correlation reported for `days_post_feeding` (rho=0.65 in the controls-included ordination) cannot be attributed to feeding exposure specifically versus developmental age versus calendar time — all three move together for these 50 samples. Updated `PCOA_MS_FEATURE_COMPOSITION.md`'s Open Questions to reflect that this ambiguity is a property of the dataset's design, not something resolvable by further analysis of this bundle alone.
+
+**Tags**: mycelium, analysis, metabolomics, pcoa, age, collinearity
+

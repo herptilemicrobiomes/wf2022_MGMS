@@ -2,6 +2,36 @@
   "namespace": "pcoa-ms-feature-composition",
   "values": [
     {
+      "key": "age_vars_n_samples",
+      "value": 50,
+      "provenance": "scripts/02_age_variable_correlation.py",
+      "computed_at": "scripts/02_age_variable_correlation.py:L54"
+    },
+    {
+      "key": "age_vars_pearson_pvalue",
+      "value": 1.6112482031472663e-60,
+      "provenance": "scripts/02_age_variable_correlation.py",
+      "computed_at": "scripts/02_age_variable_correlation.py:L56"
+    },
+    {
+      "key": "age_vars_pearson_r",
+      "value": 0.9982,
+      "provenance": "scripts/02_age_variable_correlation.py",
+      "computed_at": "scripts/02_age_variable_correlation.py:L55"
+    },
+    {
+      "key": "age_vars_spearman_pvalue",
+      "value": 6.046771950659393e-26,
+      "provenance": "scripts/02_age_variable_correlation.py",
+      "computed_at": "scripts/02_age_variable_correlation.py:L58"
+    },
+    {
+      "key": "age_vars_spearman_rho",
+      "value": 0.9502,
+      "provenance": "scripts/02_age_variable_correlation.py",
+      "computed_at": "scripts/02_age_variable_correlation.py:L57"
+    },
+    {
       "key": "n_features_pcoa",
       "value": 12566,
       "provenance": "scripts/01_pcoa.py",

@@ -69,6 +69,35 @@ permutation-based PERMANOVA (Anderson 2001 pseudo-F), both in
    one per user request — controls are informative here as a same-timeline
    comparison group, not a confound to hide.)
 
+9. **Checked whether the two derived age variables are themselves
+   correlated** (`scripts/02_age_variable_correlation.py`), since a
+   feeding schedule set relative to metamorphosis would make them
+   collinear by construction rather than independent clocks.
+
+## Age Variable Correlation
+
+`days_post_metamorphosis` vs. `days_post_feeding`, all 50 biological
+samples, colored by `treatment_group`:
+
+![days_post_metamorphosis vs days_post_feeding, colored by treatment_group, with Pearson and Spearman correlation in the title](outputs/age_variable_correlation.png)
+
+**They are essentially collinear**: Pearson r = 0.998 (p = 1.6e-60),
+Spearman rho = 0.950 (p = 6.0e-26). Points sit tightly along (but
+consistently below) the y=x line — animals were fed a small, fairly
+consistent number of days after metamorphosing (mostly 1-3 days), so
+`days_post_feeding ≈ days_post_metamorphosis - offset` for nearly every
+subject. One subject (`UHM102`) is the clear exception, with an 8-day
+metamorphosis-to-feeding gap instead of the usual 1-3 — its point sits
+visibly off the diagonal (~18 days post-metamorphosis, only 10 days
+post-feeding) but this reflects genuinely later feeding timing for that
+animal, not a data error. **Practical consequence: the two variables
+cannot be statistically disentangled in this dataset** — the earlier
+`days_post_feeding` vs. PC1 correlation (Key Findings, below) is
+equally a `days_post_metamorphosis` vs. PC1 correlation; this dataset's
+design does not let us tell whether the PCoA gradient tracks time since
+exposure or developmental age (or, per the controls-included finding
+below, neither — plain calendar time).
+
 ## Ordination Plots
 
 **All 57 samples**, colored by `sample_type` (left) and by `treatment_group`
@@ -154,13 +183,14 @@ pilot):
   repeatedly) as a covariate/blocking factor — an effect of treatment
   could be masked by the much larger age/time trend if not accounted for.
   Not attempted in this pass.
-- `days_post_metamorphosis` and `days_post_feeding` are highly correlated
-  with each other by construction (animals were fed a few days after
-  metamorphosis on a similar schedule); this analysis only tested
-  `days_post_feeding`. Worth checking whether `days_post_metamorphosis`
-  (pure developmental age) explains the ordination equally well, which
-  would matter for distinguishing a developmental-age effect from a
-  time-since-exposure effect.
+- ~~Worth checking whether `days_post_metamorphosis` explains the
+  ordination equally well~~ — checked (see "Age Variable Correlation"
+  above): the two variables are collinear (r=0.998) in this dataset, so
+  they cannot be distinguished statistically here. Resolving developmental
+  age vs. time-since-exposure vs. calendar-time as the true driver would
+  require a design where feeding date varies independently of
+  metamorphosis date (not available in this cohort), or an entirely
+  different natural experiment.
 - The repeated-measures structure (most of the 19 subjects contribute 3
   timepoints) means the 50 points are not independent observations — the
   Spearman test above does not account for within-subject correlation. A
@@ -198,4 +228,6 @@ environment exists yet; see `ENVIRONMENTS_INSTALLATIONS.md`).
 | `outputs/pcoa_bray_curtis_treated_only_by_age.pdf` / `.png` | Same 50-biological-sample (QC blanks removed) ordination as `pcoa_bray_curtis_no_blanks`, colored by `days_post_feeding` and shaped by `treatment_group` (controls included). |
 | `outputs/pcoa_scores_treated_only.csv` | Per-sample PCo1-5 coordinates for the 50-biological-sample ordination, joined to `sample_id`, `subject_id`, `treatment_group`, `days_post_feeding`, `days_post_metamorphosis`. |
 | `outputs/pcoa_variance_explained.csv` | % variance explained per PCoA axis (all-57-sample ordination). |
-| `outputs/numbers.json` | Reportable values (sample/feature counts, % variance for all ordinations, PERMANOVA pseudo-F/p, Spearman rho/p for `days_post_feeding` vs. PC1/PC2) registered via `register_value`. |
+| `outputs/numbers.json` | Reportable values (sample/feature counts, % variance for all ordinations, PERMANOVA pseudo-F/p, Spearman rho/p for `days_post_feeding` vs. PC1/PC2, age-variable correlation stats) registered via `register_value`. |
+| `outputs/age_variable_correlation.pdf` / `.png` | Scatter of `days_post_metamorphosis` vs. `days_post_feeding` (50 biological samples), colored by `treatment_group`, with Pearson/Spearman correlation in the title. |
+| `outputs/age_variable_correlation.csv` | Per-sample `days_post_metamorphosis`/`days_post_feeding` values underlying that plot. |
