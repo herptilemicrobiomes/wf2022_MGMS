@@ -5,7 +5,7 @@
       "key": "n_features_pcoa",
       "value": 12566,
       "provenance": "scripts/01_pcoa.py",
-      "computed_at": "scripts/01_pcoa.py:L232"
+      "computed_at": "scripts/01_pcoa.py:L253"
     },
     {
       "key": "n_nan_peak_area_cells_filled_zero",
@@ -17,79 +17,97 @@
       "key": "n_qc_blanks",
       "value": 7,
       "provenance": "scripts/01_pcoa.py",
-      "computed_at": "scripts/01_pcoa.py:L231"
+      "computed_at": "scripts/01_pcoa.py:L252"
     },
     {
       "key": "n_samples_biological",
       "value": 50,
       "provenance": "scripts/01_pcoa.py",
-      "computed_at": "scripts/01_pcoa.py:L230"
+      "computed_at": "scripts/01_pcoa.py:L251"
     },
     {
       "key": "n_samples_total",
       "value": 57,
       "provenance": "scripts/01_pcoa.py",
-      "computed_at": "scripts/01_pcoa.py:L229"
+      "computed_at": "scripts/01_pcoa.py:L250"
     },
     {
       "key": "pcoa_distance_metric",
       "value": "bray-curtis",
       "provenance": "scripts/01_pcoa.py",
-      "computed_at": "scripts/01_pcoa.py:L235"
+      "computed_at": "scripts/01_pcoa.py:L256"
+    },
+    {
+      "key": "pcoa_no_blanks_n_samples",
+      "value": 50,
+      "provenance": "scripts/01_pcoa.py",
+      "computed_at": "scripts/01_pcoa.py:L295"
+    },
+    {
+      "key": "pcoa_no_blanks_pc1_pct_variance",
+      "value": 23.35,
+      "provenance": "scripts/01_pcoa.py",
+      "computed_at": "scripts/01_pcoa.py:L296"
+    },
+    {
+      "key": "pcoa_no_blanks_pc2_pct_variance",
+      "value": 17.16,
+      "provenance": "scripts/01_pcoa.py",
+      "computed_at": "scripts/01_pcoa.py:L297"
     },
     {
       "key": "pcoa_normalization",
       "value": "TIC (total-peak-area) per sample",
       "provenance": "scripts/01_pcoa.py",
-      "computed_at": "scripts/01_pcoa.py:L236"
+      "computed_at": "scripts/01_pcoa.py:L257"
     },
     {
       "key": "pcoa_pc1_pct_variance",
       "value": 38.11,
       "provenance": "scripts/01_pcoa.py",
-      "computed_at": "scripts/01_pcoa.py:L233"
+      "computed_at": "scripts/01_pcoa.py:L254"
     },
     {
       "key": "pcoa_pc2_pct_variance",
       "value": 12.95,
       "provenance": "scripts/01_pcoa.py",
-      "computed_at": "scripts/01_pcoa.py:L234"
+      "computed_at": "scripts/01_pcoa.py:L255"
     },
     {
       "key": "permanova_n_permutations",
       "value": 999,
       "provenance": "scripts/01_pcoa.py",
-      "computed_at": "scripts/01_pcoa.py:L237"
+      "computed_at": "scripts/01_pcoa.py:L258"
     },
     {
       "key": "permanova_pseudo_f_sample_type",
       "value": 16.392,
       "provenance": "scripts/01_pcoa.py",
-      "computed_at": "scripts/01_pcoa.py:L241"
+      "computed_at": "scripts/01_pcoa.py:L262"
     },
     {
       "key": "permanova_pseudo_f_treatment_group",
       "value": 0.928,
       "provenance": "scripts/01_pcoa.py (biological samples only, QC blanks excluded)",
-      "computed_at": "scripts/01_pcoa.py:L249"
+      "computed_at": "scripts/01_pcoa.py:L270"
     },
     {
       "key": "permanova_pvalue_sample_type",
       "value": 0.001,
       "provenance": "scripts/01_pcoa.py",
-      "computed_at": "scripts/01_pcoa.py:L242"
+      "computed_at": "scripts/01_pcoa.py:L263"
     },
     {
       "key": "permanova_pvalue_treatment_group",
       "value": 0.543,
       "provenance": "scripts/01_pcoa.py (biological samples only, QC blanks excluded)",
-      "computed_at": "scripts/01_pcoa.py:L250"
+      "computed_at": "scripts/01_pcoa.py:L271"
     },
     {
       "key": "permanova_random_seed",
       "value": 42,
       "provenance": "scripts/01_pcoa.py",
-      "computed_at": "scripts/01_pcoa.py:L238"
+      "computed_at": "scripts/01_pcoa.py:L259"
     }
   ]
 }

@@ -208,6 +208,27 @@ def plot_pcoa(scores: np.ndarray, pct_var: np.ndarray, meta: pd.DataFrame, out_p
     plt.close(fig)
 
 
+def plot_pcoa_single_panel(
+    scores: np.ndarray, pct_var: np.ndarray, groups: pd.Series, colors: dict[str, str], title: str, out_path: Path
+) -> None:
+    fig, ax = plt.subplots(figsize=(7.5, 6))
+    for g, color in colors.items():
+        mask = (groups == g).to_numpy()
+        if not mask.any():
+            continue
+        ax.scatter(scores[mask, 0], scores[mask, 1], c=color, label=g, s=45, edgecolor="k", linewidth=0.3)
+    ax.set_xlabel(f"PCo1 ({pct_var[0]:.1f}%)")
+    ax.set_ylabel(f"PCo2 ({pct_var[1]:.1f}%)")
+    ax.set_title(title, fontsize=11, wrap=True)
+    ax.legend(fontsize=8, loc="best")
+    ax.axhline(0, color="grey", lw=0.5)
+    ax.axvline(0, color="grey", lw=0.5)
+    fig.tight_layout()
+    fig.savefig(out_path)
+    fig.savefig(out_path.with_suffix(".png"), dpi=200)
+    plt.close(fig)
+
+
 def main() -> None:
     rng = np.random.default_rng(RNG_SEED)
 
@@ -261,6 +282,34 @@ def main() -> None:
     print(f"PC1 {pct_var[0]:.1f}%  PC2 {pct_var[1]:.1f}%")
     print(f"PERMANOVA sample_type: pseudo-F={f_sample_type:.3f}, p={p_sample_type:.4f} (n_perm={N_PERMUTATIONS})")
     print(f"PERMANOVA treatment_group (biological samples only): pseudo-F={f_treatment:.3f}, p={p_treatment:.4f} (n_perm={N_PERMUTATIONS})")
+
+    # No-blanks version: PCoA is re-run on the biological-sample-only Bray-Curtis submatrix
+    # (Bray-Curtis pairwise distances themselves don't change when other samples are dropped,
+    # but the Gower centering in classical_pcoa is computed over the sample set being ordinated,
+    # so scores/axes for the subset differ from slicing the full-sample ordination).
+    meta_bio = meta.loc[bio_mask].reset_index(drop=True)
+    scores_bio, pct_var_bio = classical_pcoa(bc_bio)
+    if scores_bio.shape[0] != int(bio_mask.sum()):
+        raise ValueError(f"biological-only PCoA sample count mismatch: {scores_bio.shape[0]} vs {int(bio_mask.sum())}")
+
+    register_value("pcoa_no_blanks_n_samples", int(bio_mask.sum()), provenance="scripts/01_pcoa.py")
+    register_value("pcoa_no_blanks_pc1_pct_variance", round(float(pct_var_bio[0]), 2), provenance="scripts/01_pcoa.py")
+    register_value("pcoa_no_blanks_pc2_pct_variance", round(float(pct_var_bio[1]), 2), provenance="scripts/01_pcoa.py")
+
+    plot_pcoa_single_panel(
+        scores_bio,
+        pct_var_bio,
+        meta_bio["treatment_group"],
+        {k: v for k, v in TREATMENT_COLORS.items() if k != "(QC blank)"},
+        "PCoA (Bray-Curtis), QC blanks removed — colored by treatment_group",
+        OUT_DIR / "pcoa_bray_curtis_no_blanks.pdf",
+    )
+
+    coords_bio = pd.DataFrame(scores_bio[:, :5], columns=[f"PCo{i+1}" for i in range(5)], index=meta_bio["filename"])
+    coords_bio = coords_bio.join(meta_bio.set_index("filename")[["sample_id", "treatment_group", "subject_id"]])
+    coords_bio.to_csv(OUT_DIR / "pcoa_scores_no_blanks.csv")
+
+    print(f"[no-blanks] PC1 {pct_var_bio[0]:.1f}%  PC2 {pct_var_bio[1]:.1f}% (n={int(bio_mask.sum())})")
     print(f"Outputs written to {OUT_DIR}")
 
 

@@ -40,6 +40,23 @@ permutation-based PERMANOVA (Anderson 2001 pseudo-F), both in
    seed 42): once for `sample_type` (all 57 samples) and once for
    `treatment_group` restricted to the 50 biological samples (QC blanks
    excluded — they have no treatment_group).
+6. A second ordination re-runs classical PCoA on the Bray-Curtis submatrix
+   for the 50 biological samples only (QC blanks removed before the
+   Gower centering step, not just hidden from the plot — dropping the
+   blanks changes the centroid the other 50 samples are centered against,
+   so this is a distinct PCoA, not a crop of the first one).
+
+## Ordination Plots
+
+**All 57 samples**, colored by `sample_type` (left) and by `treatment_group`
+(right):
+
+![PCoA all samples, colored by sample_type and treatment_group](outputs/pcoa_bray_curtis.png)
+
+**QC blanks removed** (50 biological samples only, PCoA re-run on that
+subset), colored by `treatment_group`:
+
+![PCoA with QC blanks removed, colored by treatment_group](outputs/pcoa_bray_curtis_no_blanks.png)
 
 ## Key Findings
 
@@ -61,6 +78,13 @@ permutation-based PERMANOVA (Anderson 2001 pseudo-F), both in
   sample cluster) and one `QC_blank_extract` sits closer to the biological
   cluster than the other blanks — worth a closer look (see Open Questions)
   before treating either as routine.
+- **With QC blanks removed and PCoA re-run on the 50 biological samples**,
+  PC1/PC2 explain less variance each (23.3% / 17.2%, vs. 38.1% / 13.0% with
+  blanks included — removing the blanks' large between-group variance
+  redistributes explained variance across more axes). Treatment groups
+  still do not visually separate; this is consistent with (not an
+  independent confirmation beyond) the PERMANOVA result above, since the
+  PERMANOVA on `treatment_group` was already blank-excluded.
 
 ## Open Questions
 
@@ -97,7 +121,9 @@ environment exists yet; see `ENVIRONMENTS_INSTALLATIONS.md`).
 
 | File | Description |
 |------|-------------|
-| `outputs/pcoa_bray_curtis.pdf` / `.png` | Two-panel PCoA ordination (PC1 vs PC2), colored by `sample_type` and by `treatment_group`. |
-| `outputs/pcoa_scores.csv` | Per-sample PCo1-5 coordinates joined to `sample_id`, `sample_type`, `treatment_group`, `subject_id`. |
-| `outputs/pcoa_variance_explained.csv` | % variance explained per PCoA axis. |
-| `outputs/numbers.json` | Reportable values (sample/feature counts, % variance, PERMANOVA pseudo-F/p) registered via `register_value`. |
+| `outputs/pcoa_bray_curtis.pdf` / `.png` | Two-panel PCoA ordination (PC1 vs PC2), all 57 samples, colored by `sample_type` and by `treatment_group`. |
+| `outputs/pcoa_bray_curtis_no_blanks.pdf` / `.png` | PCoA re-run on the 50 biological samples only (QC blanks removed before ordination), colored by `treatment_group`. |
+| `outputs/pcoa_scores.csv` | Per-sample PCo1-5 coordinates (all 57 samples) joined to `sample_id`, `sample_type`, `treatment_group`, `subject_id`. |
+| `outputs/pcoa_scores_no_blanks.csv` | Per-sample PCo1-5 coordinates for the blanks-removed ordination (50 biological samples), joined to `sample_id`, `treatment_group`, `subject_id`. |
+| `outputs/pcoa_variance_explained.csv` | % variance explained per PCoA axis (all-57-sample ordination). |
+| `outputs/numbers.json` | Reportable values (sample/feature counts, % variance for both ordinations, PERMANOVA pseudo-F/p) registered via `register_value`. |
