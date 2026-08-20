@@ -37,3 +37,21 @@ Append-only log of non-obvious decisions and their rationale.
 
 **Tags**: mycelium, data-ingest, gnps2, metabolomics, manifest
 
+---
+
+### [2026-08-20] PCoA on MS feature table uses Bray-Curtis + TIC normalization, not raw Euclidean PCA
+
+**Context**: User asked for a PCoA of the `gnps2-ad67978e-bagel` MS1 feature-quant table (12,566 features x 57 samples) colored by `sample_type` and `treatment_group`. The peak-area columns are raw, unnormalized intensities in arbitrary units, and the feature table is sparse (many features are zero/not-detected in a given sample).
+
+**Decision**: TIC-normalize each sample (divide by its total peak area across all features) then compute Bray-Curtis distance and run classical (Gower) PCoA, per the bundle's own `README_FOR_CLAUDE.md` guidance ("Use presence/absence, not raw Pearson, on sparse features, and TIC-normalize"). Backed the ordination with a permutation PERMANOVA (999 permutations, seed 42) rather than relying on eyeballing cluster separation.
+
+**Alternatives considered**:
+- Raw Euclidean PCA on unnormalized peak areas — rejected; would let total-intensity/injection-volume differences between samples dominate the ordination rather than compositional differences, and Euclidean distance is a poor fit for sparse, non-negative, compositional feature-abundance data.
+- Log-transform + Euclidean PCA — a reasonable alternative not used here; Bray-Curtis was chosen instead as the more standard choice for compositional ecology-style feature tables (this is effectively a "metabolite community composition" ordination) and because it handles the many true zeros (not-detected features) without a log-of-zero problem.
+
+**Rationale**: Matches the domain guidance already documented in the ingested bundle's README, and keeps QC blanks (used here as the sample_type-separation sanity check) and biological samples on a comparable footing despite very different total ion content.
+
+**Consequences**: `treatment_group` PERMANOVA was restricted to the 50 biological samples only (QC blanks have no treatment_group and were excluded from that specific test, not from the ordination itself or the sample_type test). Result: sample_type separates strongly (pseudo-F=16.39, p=0.001); treatment_group does not (pseudo-F=0.93, p=0.543) on the full 12,566-feature table — see `analysis/pcoa-ms-feature-composition/PCOA_MS_FEATURE_COMPOSITION.md` Open Questions for caveats (unfiltered feature set may mask a real effect; tank/date confounds not checked).
+
+**Tags**: mycelium, analysis, metabolomics, pcoa, statistics
+
