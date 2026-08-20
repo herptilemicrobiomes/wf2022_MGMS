@@ -1,0 +1,12 @@
+# Large raw files are stored gzip-compressed for git (see the .gz siblings
+# of each path below). The uncompressed originals stay on local/shared
+# storage but are not tracked in git to keep repo size manageable.
+nf_output/networking/network_singletons.graphml
+nf_output/networking/merged_pairs.tsv
+nf_output/networking/network.graphml
+nf_output/feature_finding/aligned_features_filled.mgf
+nf_output/feature_finding/feature_finding_results/aligned_features.mgf
+nf_output/feature_finding/feature_finding_results/aligned_rt_bounds.csv
+nf_output/feature_finding/feature_finding_results/aligned_feature_ms2_scans.tsv
+nf_output/feature_finding/feature_finding_results/aligned_features_ms2.csv
+nf_output/feature_finding/feature_finding_results/aligned_features.csv

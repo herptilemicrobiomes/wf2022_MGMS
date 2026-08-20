@@ -1,0 +1,22 @@
+create_time: 2026-08-19 19:36:37 PDT-0700
+description: MSV000095549 v2 - WoodFrog fecal from feeding experiments
+detection_preset: rare
+experimentdescription: MSV000095549 v2 - Wood Frog fecal feeding project
+filter_precursor: '1'
+filter_window: '1'
+filtertostructures: '0'
+formula_prediction_method: buddy
+fragment_tolerance: '0.05'
+input_spectra: DATASETLOCATION/MassIVE/MSV000095549
+input_spectral_library: LIBRARYLOCATION/LC/LIBRARY
+library_min_matched_peaks: '6'
+library_min_similarity: '0.7'
+metadata_file: USERUPLOAD/jstajich/WF2022/WF2022_metadata_animal_enriched.csv
+mode: fbmn
+noise_threshold_mode: standard
+pm_tolerance: '0.05'
+run_peak_resolving_challenger: 'no'
+task: ad67978e27274245abe5ea428c44ce09
+topk: '1'
+workflow_version: SERVER:2026.05.21;WORKFLOW:2026.08.13
+workflowname: everything_bagel_workflow

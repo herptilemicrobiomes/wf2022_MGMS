@@ -1,0 +1,142 @@
+dataset_name: gnps2_ad67978e_bagel
+description: >
+  GNPS2 Everything Bagel result bundle (feature quant + gap-filled MS/MS +
+  molecular-networking edges + spectral-library hits) for the WF_2022 wood
+  frog (Lithobates sylvaticus) fecal feeding-experiment metabolomics dataset
+  (MassIVE MSV000095549, v2 re-run with enriched sample metadata baked in).
+  Unit of observation for the primary quant table is one row per aligned
+  feature (join key: row ID / MGF SCANS / graphml cluster index).
+format: CSV/TSV/MGF/GraphML/YAML (multi-file bundle; see README_FOR_CLAUDE.md for the full file list)
+
+columns:
+  # Primary quant table: nf_output/feature_finding/feature_finding_results/aligned_features.csv
+  # 143 columns total; key columns listed below. Remaining columns are per-sample-file peak-area
+  # columns (one per input mzML file) plus additional feature-finding QC fields — see the file
+  # header directly for the full column list.
+
+  - name: row ID
+    type: int
+    description: Feature/row id. The join key across aligned_features.csv, aligned_features_filled.mgf (SCANS), filtered_pairs.tsv (CLUSTERID1/CLUSTERID2), merged_feature_library_search_results.tsv, and network.graphml (cluster index).
+    nullable: false
+
+  - name: row m/z
+    type: float
+    description: Observed feature m/z (not necessarily [M+H]+ — check the adduct column before computing neutral mass).
+    units: m/z
+    nullable: false
+
+  - name: row retention time
+    type: float
+    description: Feature retention time.
+    units: minutes
+    nullable: false
+
+  - name: parent_mass
+    type: float
+    description: Resolved parent/precursor mass used by the feature-finding step.
+    units: Da
+    nullable: true
+
+  - name: adduct
+    type: categorical
+    description: Called adduct for the feature (e.g. [M+H]+, [M+Na]+, [M+NH4]+). Do not assume protonation without checking this field.
+    nullable: true
+
+  - name: is_isf
+    type: bool
+    description: Whether this feature is flagged as an in-source fragment.
+    nullable: true
+
+  - name: isf_parent_id
+    type: int
+    description: If is_isf is true, the row ID of the larger parent compound this feature fragments from.
+    nullable: true
+
+  - name: detection_count / detection_rate
+    type: int / float
+    description: Number/fraction of sample files in which the feature was detected above threshold.
+    nullable: true
+
+  - name: (per-sample-file peak area columns)
+    type: float
+    description: One column per linked input mzML file (see flow_filelinking.yaml / nf_output/file_list/input_spectra_list.tsv for the file list), giving that feature's integrated peak area in that file. Join to nf_output/metadata/merged_metadata.tsv on filename for sample-level grouping.
+    units: peak area (arbitrary intensity units, not molar concentration)
+    nullable: true
+
+  # Networking edges: nf_output/networking/filtered_pairs.tsv
+  - name: CLUSTERID1
+    type: int
+    description: Feature/row id of edge endpoint 1 (join key, same space as row ID above).
+    nullable: false
+
+  - name: CLUSTERID2
+    type: int
+    description: Feature/row id of edge endpoint 2.
+    nullable: false
+
+  - name: DeltaMZ
+    type: float
+    description: Mass difference between the two connected features; used for delta-mass propagation / homolog-series analysis.
+    units: Da
+    nullable: false
+
+  - name: Cosine
+    type: float
+    description: Spectral cosine similarity between the two features' MS/MS.
+    nullable: false
+
+  - name: MatchedPeaks
+    type: int
+    description: Number of matched fragment peaks supporting the edge.
+    nullable: false
+
+  # Sample metadata: nf_output/metadata/merged_metadata.tsv
+  - name: filename / filename_ms1
+    type: str
+    description: Source mzML filenames (MS2 and MS1) for the sample, used to join to the per-sample-file peak-area columns in aligned_features.csv.
+    nullable: false
+
+  - name: sample_type
+    type: categorical
+    description: Sample category.
+    nullable: false
+    values:
+      - sample
+      - QC_blank_extract
+      - QC_blank_solvent
+      - QC_blank_with_internal_standard
+
+  - name: host_genus / host_species
+    type: str
+    description: Host organism taxonomy. All samples are Lithobates sylvaticus (wood frog); blank for QC rows.
+    nullable: true
+
+  - name: tissue
+    type: categorical
+    description: Sample tissue type (fecal for all animal samples).
+    nullable: true
+
+  - name: subject_id / replicate_or_accession
+    type: str / float
+    description: Individual animal id (subject_id) and the specific sample/accession replicate collected from that animal.
+    nullable: true
+
+  - name: collection_date / metamorphosis_date / basidiobolus_feeding_date / parent_biosample_collection_date
+    type: datetime
+    description: Key dates in the feeding-experiment timeline for the sampled animal.
+    nullable: true
+
+  - name: tank / egg_mass / treatment / treatment_group
+    type: str/int/categorical
+    description: Feeding-experiment design variables (tank assignment, egg-mass cohort, treatment arm, pilot/study label e.g. "STP1710.7 pilot").
+    nullable: true
+
+  - name: geo_loc_name / state / gps_lat / gps_lon
+    type: str/float
+    description: Collection location. gps_lat/gps_lon are blank in this export.
+    nullable: true
+
+  - name: chem_sample_type / n_pooled_biosamples / animal_notes_lab
+    type: str/int/str
+    description: Chemistry-side sample handling notes, number of biosamples pooled per chemistry sample, and free-text lab notes (e.g. "Preconditioned on FFs - Do not expect Basidiobolus").
+    nullable: true

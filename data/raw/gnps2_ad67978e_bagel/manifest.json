@@ -1,0 +1,88 @@
+{
+  "task": "ad67978e27274245abe5ea428c44ce09",
+  "host": "https://gnps2.org",
+  "workflow": "everything_bagel_workflow",
+  "packaged": "2026-08-20T03:23:45.845Z",
+  "files": [
+    {
+      "path": "submission_parameters.yaml",
+      "bytes": 820,
+      "description": "Form values exactly as the user submitted them (workflow name, tolerances, dataset selection). The best record of intent."
+    },
+    {
+      "path": "job_parameters.yaml",
+      "bytes": 1271,
+      "description": "Fully resolved Nextflow parameters the run actually used."
+    },
+    {
+      "path": "flow_filelinking.yaml",
+      "bytes": 7200,
+      "description": "Which concrete input spectrum files were linked into the run."
+    },
+    {
+      "path": "nf_output/file_list/input_spectra_list.tsv",
+      "bytes": 10572,
+      "description": "One row per input spectrum file linked into the run."
+    },
+    {
+      "path": "nf_output/feature_finding/feature_finding_results/aligned_features.csv",
+      "bytes": 6890640,
+      "description": "PRIMARY feature quantification table: aligned features (rows, keyed by feature/row id) x samples, with m/z, RT, and per-file peak areas. Start here for quant."
+    },
+    {
+      "path": "nf_output/feature_finding/aligned_features_filled.mgf",
+      "bytes": 5652807,
+      "description": "Gap-filled aligned-feature MS/MS, one spectrum per feature; SCANS = feature/row id. Primary spectra for fragment-level work."
+    },
+    {
+      "path": "nf_output/feature_library_search/merged_feature_library_search_results.tsv",
+      "bytes": 156202,
+      "description": "Spectral-library matches for features (may be absent if this run skipped library search)."
+    },
+    {
+      "path": "nf_output/networking/filtered_pairs.tsv",
+      "bytes": 54277,
+      "description": "Filtered molecular-networking edges between features. Columns: CLUSTERID1, CLUSTERID2 (= feature ids), DeltaMZ, Cosine, MatchedPeaks."
+    },
+    {
+      "path": "nf_output/metadata/merged_metadata.tsv",
+      "bytes": 14106,
+      "description": "Merged sample metadata / grouping (may be absent if none was supplied)."
+    },
+    {
+      "path": "nf_output/networking/network.graphml",
+      "bytes": 5415695,
+      "description": "The molecular network as GraphML, if this run produced one (Cytoscape-ready)."
+    },
+    {
+      "path": "nf_output/networking/network_singletons.graphml",
+      "bytes": 44333550,
+      "description": "Network including singleton features, if produced."
+    },
+    {
+      "path": "nf_output/feature_finding/feature_finding_results/aligned_features.mgf",
+      "bytes": 4939226,
+      "description": "Aligned-feature MS/MS before gap-filling."
+    },
+    {
+      "path": "nf_output/feature_finding/feature_finding_results/aligned_features_ms2.csv",
+      "bytes": 2131958,
+      "description": "Per-feature MS2 summary (precursor, best-scan info)."
+    },
+    {
+      "path": "nf_output/feature_finding/feature_finding_results/aligned_feature_ms2_scans.tsv",
+      "bytes": 5315884,
+      "description": "Maps each feature to the individual MS2 scans that contributed to it."
+    },
+    {
+      "path": "nf_output/feature_finding/feature_finding_results/aligned_rt_bounds.csv",
+      "bytes": 12645766,
+      "description": "Per-feature RT integration bounds per file (large)."
+    },
+    {
+      "path": "nf_output/networking/merged_pairs.tsv",
+      "bytes": 6488480,
+      "description": "ALL raw pairwise alignments before topology filtering. filtered_pairs.tsv is the filtered network you usually want instead."
+    }
+  ]
+}

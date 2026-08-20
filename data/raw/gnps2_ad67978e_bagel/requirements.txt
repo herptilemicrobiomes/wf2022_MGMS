@@ -1,0 +1,9 @@
+# Python packages for analyzing this GNPS2 networking bundle.
+# Install into a fresh environment with:  pip install -r requirements.txt
+# (Python 3.8+.)  See README_FOR_CLAUDE.md -> 'Local tooling' for usage.
+
+massql       # query the MS/MS (.mgf) by fragment / neutral loss / precursor
+pyteomics    # plain MGF / mzML parsing to peak + precursor arrays
+rdkit        # SMILES -> molecular formula & exact monoisotopic mass (mass calibration)
+networkx     # read network.graphml, traverse components, walk delta-mass propagation
+pandas       # load the .tsv / .csv result tables and join on the cluster index / feature id
