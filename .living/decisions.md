@@ -128,3 +128,39 @@ Append-only log of non-obvious decisions and their rationale.
 
 **Tags**: mycelium, analysis, metabolomics, feature-screening, multiple-testing, statistics
 
+---
+
+### [2026-08-20] Adapted the sibling-project SIRIUS pipelines rather than building from scratch, and enforced single-process serialization
+
+**Context**: User asked to add SIRIUS annotation for the feeding-emergent-features candidates plus a full-feature-set run, building on existing frameworks in `Chytrid/Bd_massspec/Batrachochytrium_MS/analysis/sirius_annotation/` and `Rhodotorula/Rhodotorula_Metabolites/Rhodotorula_pheno_MS/analysis/sirius_annotation/` + `scripts/sirius_container_pipeline/`. A background investigation of both found: SIRIUS runs via a shared Singularity container (`/bigdata/stajichlab/shared/singularity/sirius-6.3.12-linux-x64.sif`) but only ONE `sirius` process may run project-wide (across all of this user's projects) at a time — the `~/.sirius-6.3/` login/refresh-token file is shared and broke concurrently 3× in Rhodotorula's own history.
+
+**Decision**: Ported the target-select → MGF-export → shard → run(sbatch) → merge → import script pattern verbatim in structure (`analysis/sirius_annotation/scripts/`), using Bd_massspec's `has_ms2 & charge==1` filter as the "full run" target-selection logic (not Rhodotorula's "significant-features-only" variant, since the user explicitly asked for "a full set of features"). Every `run_sirius_shard.sh` invocation checks `sirius login --show` before running, and the analysis doc explicitly instructs checking `squeue -u jstajich` for any other SIRIUS job (this project or a sibling) before submitting.
+
+**Alternatives considered**:
+- Write a fresh, from-scratch SIRIUS wrapper — rejected; the sibling projects already paid for the SIGILL/AOT-cache fix, the login-serialization discovery, and the output-schema quirks (rank==1 columns, Infinity confidence values, `.sirius`-vs-directory resume check) — re-deriving those independently risks repeating already-solved failures.
+- Run the full-feature-set target selection using Rhodotorula's "significant only" pattern — rejected; the user's phrasing ("a full set of features") called for the broader Bd_massspec-style filter (has_ms2 & charge==1, no significance pre-filter), which is also a fair general-purpose annotation resource independent of any one hypothesis (unlike a significance-filtered set, which would bake in this project's specific feeding-emergent hypothesis).
+
+**Rationale**: Reusing a battle-tested pattern with known failure modes already documented (see Rhodotorula's `knowledgebase/sirius.md`) is lower-risk than reimplementing, and keeps this project's SIRIUS usage compatible with the shared login constraint that spans all three projects under the same HPC account.
+
+**Consequences**: Any future SIRIUS work in this project must continue to serialize against Bd_massspec and Rhodotorula's SIRIUS jobs (check `squeue -u jstajich` first) — this is now a cross-project operational constraint, not just a within-project one. The full run (3,530 features, 177 shards) was prepared but is a substantial serial-wall-clock commitment; submission was deferred pending explicit user confirmation rather than launched automatically.
+
+**Tags**: mycelium, analysis, metabolomics, sirius, annotation, cross-project, hpcc
+
+---
+
+### [2026-08-20] Submitted the full SIRIUS run with a SLURM job dependency chain for unattended completion
+
+**Context**: User confirmed submitting the full 177-shard SIRIUS run (~2-3 days serial wall-clock, per the runtime estimate from the pilot interesting-features run) and asked for it to run fully autonomously since they may log out, with a handoff prepared for whenever the work is picked up again.
+
+**Decision**: Submitted the array job (`27671478`, `--array=0-176%1`) and a second job (`27671479`, `scripts/run_merge_import_full.sbatch`) with `--dependency=afterok:27671478` — SLURM's own dependency semantics for an array job wait for *all* array tasks to succeed before releasing the dependent job, so merge+import happens automatically without any interactive Claude Code session needing to still be running. The merge job writes `FULL_RUN_COMPLETE.marker` on success as an unambiguous completion signal for a future session. Job ids are recorded in `.full_run_array_jobid`/`.full_run_merge_jobid`, and `SIRIUS_ANNOTATION.md`'s Status section has full status-check instructions (`squeue`/`sacct` commands, what the marker file means, what's still manual afterward).
+
+**Alternatives considered**:
+- Keep a Claude Code session/background Bash monitor alive to run merge+import interactively once the array finishes — rejected; the user explicitly said they may log out, and a session-bound monitor doesn't survive that. A SLURM-native dependency is the correct mechanism for "finish this unattended."
+- Run merge+import as a bare shell loop polling `squeue` in the background — rejected in favor of the dependency chain; `--dependency=afterok` is SLURM's built-in, more robust mechanism (survives login-node reboots, doesn't consume a held shell/session) and avoids a wasteful long-lived polling job.
+
+**Rationale**: Matches the constraint that this project's compute is on a shared HPC cluster where jobs must outlive any single interactive session — SLURM's job dependency graph is the right tool for a genuinely unattended multi-day pipeline stage.
+
+**Consequences**: The prose-writing step (updating `SIRIUS_ANNOTATION.md`'s Key Findings with the real full-run numbers/hit-rate once complete) still requires a Claude Code session to do the synthesis — the marker file and updated `sirius_annotations.tsv` are ready for that pass whenever it happens, but they don't write themselves. A future session should check `FULL_RUN_COMPLETE.marker` and `sacct -j 27671478,27671479` first thing when resuming this analysis.
+
+**Tags**: mycelium, analysis, metabolomics, sirius, slurm, dependency, handoff, autonomous
+

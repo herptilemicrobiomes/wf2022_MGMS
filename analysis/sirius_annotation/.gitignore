@@ -1,0 +1,5 @@
+# Large/transient SIRIUS working data -- not tracked in git.
+shards_*/
+sirius_results_*/
+logs/*.log
+sirius_targets_full.mgf

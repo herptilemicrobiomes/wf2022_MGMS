@@ -1,0 +1,83 @@
+{
+  "namespace": "sirius_annotation",
+  "values": [
+    {
+      "key": "sirius_full_n_shards",
+      "value": 177,
+      "provenance": "scripts/shard_mgf.py --spectra-per-shard 20",
+      "computed_at": "<stdin>:L9"
+    },
+    {
+      "key": "sirius_full_n_targets",
+      "value": 3530,
+      "provenance": "scripts/select_targets.py --mode full",
+      "computed_at": "<stdin>:L8"
+    },
+    {
+      "key": "sirius_interesting_job_elapsed_seconds",
+      "value": 321,
+      "provenance": "sacct -j 27661542 (5m21s for 3 spectra)",
+      "computed_at": "<stdin>:L10"
+    },
+    {
+      "key": "sirius_interesting_n_formula_called",
+      "value": 2,
+      "provenance": "sirius_results_interesting/merged/formula_identifications.tsv",
+      "computed_at": "<stdin>:L5"
+    },
+    {
+      "key": "sirius_interesting_n_structure_hit",
+      "value": 1,
+      "provenance": "sirius_results_interesting/merged/structure_identifications.tsv",
+      "computed_at": "<stdin>:L6"
+    },
+    {
+      "key": "sirius_interesting_n_submitted",
+      "value": 3,
+      "provenance": "manual: sirius_targets_interesting.mgf",
+      "computed_at": "<stdin>:L4"
+    },
+    {
+      "key": "sirius_interesting_top_structure_confidence",
+      "value": 0.09,
+      "provenance": "sirius_results_interesting/merged/structure_identifications.tsv (feature 7757)",
+      "computed_at": "<stdin>:L7"
+    },
+    {
+      "key": "sirius_n_dropped_full",
+      "value": 0,
+      "provenance": "scripts/export_targets_mgf.py",
+      "computed_at": "scripts/export_targets_mgf.py:L104"
+    },
+    {
+      "key": "sirius_n_dropped_interesting",
+      "value": 14,
+      "provenance": "scripts/export_targets_mgf.py",
+      "computed_at": "scripts/export_targets_mgf.py:L104"
+    },
+    {
+      "key": "sirius_n_exported_full",
+      "value": 3530,
+      "provenance": "scripts/export_targets_mgf.py",
+      "computed_at": "scripts/export_targets_mgf.py:L103"
+    },
+    {
+      "key": "sirius_n_exported_interesting",
+      "value": 3,
+      "provenance": "scripts/export_targets_mgf.py",
+      "computed_at": "scripts/export_targets_mgf.py:L103"
+    },
+    {
+      "key": "sirius_n_targets_full",
+      "value": 3530,
+      "provenance": "scripts/select_targets.py",
+      "computed_at": "scripts/select_targets.py:L112"
+    },
+    {
+      "key": "sirius_n_targets_interesting",
+      "value": 17,
+      "provenance": "scripts/select_targets.py",
+      "computed_at": "scripts/select_targets.py:L112"
+    }
+  ]
+}
