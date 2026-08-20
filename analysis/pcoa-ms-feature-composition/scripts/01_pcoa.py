@@ -48,7 +48,8 @@ TREATMENT_COLORS = {
     "STP1717.1 pilot": "#7570B3",
     "(QC blank)": "#BBBBBB",
 }
-TREATED_MARKERS = {
+AGE_GRADIENT_MARKERS = {
+    "control": "s",
     "STP1710.7 pilot": "o",
     "STP1717.1 pilot": "^",
 }
@@ -384,60 +385,44 @@ def main() -> None:
 
     print(f"[no-blanks] PC1 {pct_var_bio[0]:.1f}%  PC2 {pct_var_bio[1]:.1f}% (n={int(bio_mask.sum())})")
 
-    # Treated-only version: QC blanks AND control-treatment samples dropped, since
-    # days_post_feeding measures time since Basidiobolus exposure and is only meaningful for
-    # animals that were actually fed the fungus (the two pilot cohorts), not for controls.
-    treated_mask_bio = meta_bio["treatment_group"].isin(TREATED_MARKERS.keys()).to_numpy()
-    n_dropped_controls = int((~treated_mask_bio).sum())
-    register_value(
-        "pcoa_treated_only_n_controls_dropped",
-        n_dropped_controls,
-        provenance="scripts/01_pcoa.py: control treatment_group samples excluded from the age-gradient ordination",
-    )
-    bc_treated = bc_bio[np.ix_(np.where(treated_mask_bio)[0], np.where(treated_mask_bio)[0])]
-    meta_treated = meta_bio.loc[treated_mask_bio].reset_index(drop=True)
-    if meta_treated["days_post_feeding"].isna().any():
-        raise ValueError("days_post_feeding has missing values among treated-only samples")
+    # Age-gradient version: QC blanks dropped, but controls KEPT (unlike an earlier iteration of
+    # this analysis that also dropped controls) -- reuses the same 50-sample no-blanks ordination
+    # (bc_bio / scores_bio / pct_var_bio / meta_bio) computed above rather than a separate PCoA,
+    # since the sample set is identical to the no-blanks plot.
+    if meta_bio["days_post_feeding"].isna().any():
+        raise ValueError("days_post_feeding has missing values among biological samples")
 
-    scores_treated, pct_var_treated = classical_pcoa(bc_treated)
-    if scores_treated.shape[0] != meta_treated.shape[0]:
-        raise ValueError(f"treated-only PCoA sample count mismatch: {scores_treated.shape[0]} vs {meta_treated.shape[0]}")
+    register_value("pcoa_age_gradient_n_samples", int(meta_bio.shape[0]), provenance="scripts/01_pcoa.py")
 
-    register_value("pcoa_treated_only_n_samples", int(meta_treated.shape[0]), provenance="scripts/01_pcoa.py")
-    register_value("pcoa_treated_only_pc1_pct_variance", round(float(pct_var_treated[0]), 2), provenance="scripts/01_pcoa.py")
-    register_value("pcoa_treated_only_pc2_pct_variance", round(float(pct_var_treated[1]), 2), provenance="scripts/01_pcoa.py")
-
-    rho_pc1, p_pc1 = spearmanr(meta_treated["days_post_feeding"], scores_treated[:, 0])
-    rho_pc2, p_pc2 = spearmanr(meta_treated["days_post_feeding"], scores_treated[:, 1])
-    register_value("spearman_rho_days_post_feeding_pc1", round(float(rho_pc1), 3), provenance="scripts/01_pcoa.py")
-    register_value("spearman_pvalue_days_post_feeding_pc1", round(float(p_pc1), 4), provenance="scripts/01_pcoa.py")
-    register_value("spearman_rho_days_post_feeding_pc2", round(float(rho_pc2), 3), provenance="scripts/01_pcoa.py")
-    register_value("spearman_pvalue_days_post_feeding_pc2", round(float(p_pc2), 4), provenance="scripts/01_pcoa.py")
+    rho_pc1, p_pc1 = spearmanr(meta_bio["days_post_feeding"], scores_bio[:, 0])
+    rho_pc2, p_pc2 = spearmanr(meta_bio["days_post_feeding"], scores_bio[:, 1])
+    register_value("spearman_rho_days_post_feeding_pc1", round(float(rho_pc1), 3), provenance="scripts/01_pcoa.py (50 biological samples, controls included)")
+    register_value("spearman_pvalue_days_post_feeding_pc1", round(float(p_pc1), 4), provenance="scripts/01_pcoa.py (50 biological samples, controls included)")
+    register_value("spearman_rho_days_post_feeding_pc2", round(float(rho_pc2), 3), provenance="scripts/01_pcoa.py (50 biological samples, controls included)")
+    register_value("spearman_pvalue_days_post_feeding_pc2", round(float(p_pc2), 4), provenance="scripts/01_pcoa.py (50 biological samples, controls included)")
 
     plot_pcoa_by_age(
-        scores_treated,
-        pct_var_treated,
-        meta_treated,
+        scores_bio,
+        pct_var_bio,
+        meta_bio,
         color_col="days_post_feeding",
         color_label="Days post Basidiobolus feeding",
         marker_col="treatment_group",
-        marker_map=TREATED_MARKERS,
-        title="PCoA (Bray-Curtis), QC blanks + controls removed\ncolor = days post feeding, shape = treatment_group",
+        marker_map=AGE_GRADIENT_MARKERS,
+        title="PCoA (Bray-Curtis), QC blanks removed\ncolor = days post feeding, shape = treatment_group",
         out_path=OUT_DIR / "pcoa_bray_curtis_treated_only_by_age.pdf",
     )
 
-    coords_treated = pd.DataFrame(
-        scores_treated[:, :5], columns=[f"PCo{i+1}" for i in range(5)], index=meta_treated["filename"]
-    )
-    coords_treated = coords_treated.join(
-        meta_treated.set_index("filename")[
+    coords_age = pd.DataFrame(scores_bio[:, :5], columns=[f"PCo{i+1}" for i in range(5)], index=meta_bio["filename"])
+    coords_age = coords_age.join(
+        meta_bio.set_index("filename")[
             ["sample_id", "subject_id", "treatment_group", "days_post_feeding", "days_post_metamorphosis"]
         ]
     )
-    coords_treated.to_csv(OUT_DIR / "pcoa_scores_treated_only.csv")
+    coords_age.to_csv(OUT_DIR / "pcoa_scores_treated_only.csv")
 
     print(
-        f"[treated-only, n={meta_treated.shape[0]}] PC1 {pct_var_treated[0]:.1f}%  PC2 {pct_var_treated[1]:.1f}%  "
+        f"[age-gradient, n={meta_bio.shape[0]}, controls included] PC1 {pct_var_bio[0]:.1f}%  PC2 {pct_var_bio[1]:.1f}%  "
         f"Spearman(days_post_feeding, PC1) rho={rho_pc1:.3f} p={p_pc1:.4f}  "
         f"Spearman(days_post_feeding, PC2) rho={rho_pc2:.3f} p={p_pc2:.4f}"
     )

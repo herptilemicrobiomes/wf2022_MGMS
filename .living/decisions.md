@@ -73,3 +73,21 @@ Append-only log of non-obvious decisions and their rationale.
 
 **Tags**: mycelium, analysis, metabolomics, pcoa, age, derived-variable
 
+---
+
+### [2026-08-20] Reverted the age-gradient PCoA to include controls, dropping only QC blanks
+
+**Context**: The initial age-gradient plot (`pcoa_bray_curtis_treated_only_by_age.png`) dropped both QC blanks and `control`-treatment samples, reasoning that `days_post_feeding` wasn't a meaningful clock for unfed controls. The user asked to see control samples in that plot too, dropping only QC blanks.
+
+**Decision**: Reused the existing 50-biological-sample (QC-blanks-removed) ordination — already computed for `pcoa_bray_curtis_no_blanks.png` — for the age-gradient plot instead of computing a separate 33-sample PCoA. Controls do have a `basidiobolus_feeding_date` recorded (same tank/cohort schedule) even though they weren't exposed, so `days_post_feeding` is technically defined for them; kept the output filename unchanged per the user's request (referenced by that exact name) even though "treated_only" is no longer literally accurate for its contents.
+
+**Alternatives considered**:
+- Keep both the treated-only and controls-included versions as separate plots — rejected as unrequested scope creep; the user asked to update the existing plot, not add a fourth one.
+- Rename the file to something like `pcoa_bray_curtis_no_blanks_by_age.png` — rejected; the user referenced the file by its exact current name, so keeping the path stable avoids breaking that reference, at the cost of a slightly stale-sounding filename (noted in the report doc).
+
+**Rationale**: Reusing the no-blanks ordination avoids a redundant PCoA computation and keeps the two "no-blanks" plots (by treatment_group, by age) directly comparable point-for-point.
+
+**Consequences**: With controls included, the `days_post_feeding` vs. PC1 correlation got *stronger* (Spearman rho=0.65, p<0.0001, up from rho=0.54 on the fed-only subset) and now visibly holds across all three treatment groups equally — which changes the scientific interpretation flagged in the report: this axis is more likely a calendar-time/batch effect than a Basidiobolus-specific biological response, since it affects never-exposed controls the same way. Added this caveat to Key Findings and Open Questions in `PCOA_MS_FEATURE_COMPOSITION.md`.
+
+**Tags**: mycelium, analysis, metabolomics, pcoa, age, confound
+
