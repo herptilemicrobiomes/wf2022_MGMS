@@ -1,0 +1,83 @@
+{
+  "namespace": "feeding-emergent-features",
+  "values": [
+    {
+      "key": "screen_early_days_max",
+      "value": 10,
+      "provenance": "scripts/01_screen_features.py",
+      "computed_at": "scripts/01_screen_features.py:L267"
+    },
+    {
+      "key": "screen_fdr_threshold",
+      "value": 0.05,
+      "provenance": "scripts/01_screen_features.py",
+      "computed_at": "scripts/01_screen_features.py:L270"
+    },
+    {
+      "key": "screen_late_days_min",
+      "value": 45,
+      "provenance": "scripts/01_screen_features.py",
+      "computed_at": "scripts/01_screen_features.py:L268"
+    },
+    {
+      "key": "screen_min_fold_change",
+      "value": 4.0,
+      "provenance": "scripts/01_screen_features.py",
+      "computed_at": "scripts/01_screen_features.py:L269"
+    },
+    {
+      "key": "screen_n_candidates_STP1710_7",
+      "value": 0,
+      "provenance": "scripts/01_screen_features.py",
+      "computed_at": "scripts/01_screen_features.py:L278"
+    },
+    {
+      "key": "screen_n_candidates_STP1717_1",
+      "value": 1,
+      "provenance": "scripts/01_screen_features.py",
+      "computed_at": "scripts/01_screen_features.py:L278"
+    },
+    {
+      "key": "screen_n_candidates_both_groups",
+      "value": 0,
+      "provenance": "scripts/01_screen_features.py",
+      "computed_at": "scripts/01_screen_features.py:L312"
+    },
+    {
+      "key": "screen_n_candidates_library_annotated",
+      "value": 0,
+      "provenance": "scripts/01_screen_features.py",
+      "computed_at": "scripts/01_screen_features.py:L287"
+    },
+    {
+      "key": "screen_n_features_tested",
+      "value": 12566,
+      "provenance": "scripts/01_screen_features.py",
+      "computed_at": "scripts/01_screen_features.py:L271"
+    },
+    {
+      "key": "screen_n_pattern_leads_both_groups",
+      "value": 1,
+      "provenance": "scripts/01_screen_features.py",
+      "computed_at": "scripts/01_screen_features.py:L313"
+    },
+    {
+      "key": "screen_n_pattern_leads_library_annotated",
+      "value": 0,
+      "provenance": "scripts/01_screen_features.py",
+      "computed_at": "scripts/01_screen_features.py:L315"
+    },
+    {
+      "key": "screen_n_pattern_only_STP1710_7",
+      "value": 8,
+      "provenance": "scripts/01_screen_features.py (matches shape criteria, not FDR-significant)",
+      "computed_at": "scripts/01_screen_features.py:L283"
+    },
+    {
+      "key": "screen_n_pattern_only_STP1717_1",
+      "value": 10,
+      "provenance": "scripts/01_screen_features.py (matches shape criteria, not FDR-significant)",
+      "computed_at": "scripts/01_screen_features.py:L283"
+    }
+  ]
+}

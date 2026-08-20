@@ -109,3 +109,22 @@ Append-only log of non-obvious decisions and their rationale.
 
 **Tags**: mycelium, analysis, metabolomics, pcoa, age, collinearity
 
+---
+
+### [2026-08-20] Feeding-emergent feature screen: two-tier reporting (FDR-significant vs. pattern-only) instead of a single threshold
+
+**Context**: User asked to identify features absent/low in control, absent/low early in feeding, and higher late in feeding, in either treated cohort. A per-feature Mann-Whitney U test (late vs. control+early baseline) with Benjamini-Hochberg FDR correction across all 12,566 features per group left only 1 FDR-significant feature (of 8+10=18 features matching the qualitative shape criteria) — the early/late group sizes are small (n=5-7 per cohort) and the multiple-testing burden across 12,566 features is heavy.
+
+**Decision**: Report results at two explicit tiers rather than picking one cutoff: (1) `feeding_emergent_candidates.csv` — screening criteria AND FDR q<0.05 (currently 1 feature); (2) `feeding_emergent_pattern_leads.csv` — screening criteria only, ranked by fold change, explicitly labeled as uncorrected (currently 18 features, 1 overlapping both treated groups). The full per-feature results for all 12,566 features (pass or fail) are also saved (`feature_screen_all_results.csv`) as the audit trail.
+
+**Alternatives considered**:
+- Report only the FDR-significant list — rejected; a single significant feature is a thin result to hand back for what's clearly a real, visually confirmable pattern in several more features (see trajectory plots), and burying the leads would look like the analysis "found nothing" when it found a shape, just not enough samples to clear correction at 12,566-test scale.
+- Relax the FDR threshold instead of adding a second tier — rejected; changing FDR_THRESHOLD to manufacture more "significant" hits blurs the honesty distinction the robust-analysis convention asks for. Keeping q<0.05 and being explicit about the second, uncorrected tier is more honest than moving the goalpost.
+- Test only the 8+10=18 pre-screened candidates for significance (much smaller multiple-testing burden) instead of all 12,566 — rejected for the *primary* result, since testing only features that already look promising by eye is circular/selection-biased; noted in Open Questions as a legitimate, separate follow-up test now that the 18 aren't being "discovered" by that second test.
+
+**Rationale**: Matches the repo's posture ("hypothesis generator; calibrated honesty is the whole value" — README_FOR_CLAUDE.md) and the robust-analysis convention's emphasis on reporting clean negatives/uncertain results as such rather than overclaiming.
+
+**Consequences**: Anyone using this list must treat the pattern-leads tier as leads, not confirmed hits — flagged explicitly in the report doc and CSV column name (`matches_pattern_uncorrected`). None of the 18 have a spectral-library annotation, so even the FDR-significant one (feature 4506) is an unannotated lead pending the follow-up annotation work listed in Open Questions.
+
+**Tags**: mycelium, analysis, metabolomics, feature-screening, multiple-testing, statistics
+
